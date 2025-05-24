@@ -19,17 +19,14 @@ graph TB
 
     subgraph "Message Broker"
         RMQ[RabbitMQ]
-        Channels[Каналы чата]
     end
 
     Console -->|Подписка/Публикация| RMQ
     GUI -->|Подписка/Публикация| RMQ
-    RMQ -->|Маршрутизация| Channels
 
     style Console fill:#f9f,stroke:#333,stroke-width:2px
     style GUI fill:#f9f,stroke:#333,stroke-width:2px
     style RMQ fill:#bbf,stroke:#333,stroke-width:2px
-    style Channels fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
 ## Компоненты системы
