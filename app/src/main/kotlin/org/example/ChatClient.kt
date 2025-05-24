@@ -4,7 +4,7 @@ import com.rabbitmq.client.*
 import kotlinx.coroutines.*
 
 class ChatClient(
-    private val host: String = "127.0.0.1",
+    private val host: String,
     initialChannel: String,
     private val username: String
 ) {
@@ -18,6 +18,7 @@ class ChatClient(
         try {
             val factory = ConnectionFactory()
             factory.host = host
+            // factory.port = port
             connection = factory.newConnection()
             channel = connection?.createChannel()
 
@@ -31,7 +32,7 @@ class ChatClient(
             println("Connected to RabbitMQ server at $host")
             println("Joined channel: $currentChannel")
         } catch (e: Exception) {
-            println("Error connecting to RabbitMQ: ${e.message}")
+            println("Error connecting to RabbitMQ on host ${host}: ${e.message}")
             close()
         }
     }
@@ -106,9 +107,9 @@ class ChatClient(
 }
 
 fun main(args: Array<String>) {
-    val host = args.getOrNull(0) ?: "127.0.0.1"
+    val host = args.getOrNull(0) ?: System.getenv("RABBITMQ_HOST")
     val initialChannel = args.getOrNull(1) ?: "general"
-    
+
     print("Enter your username: ")
     val username = readLine()?.takeIf { it.isNotBlank() } ?: "Anonymous"
 
@@ -121,7 +122,7 @@ fun main(args: Array<String>) {
     println("Type 'exit' to quit")
 
     while (true) {
-        val input = readLine() ?: break
+        val input = readLine() ?: continue
 
         when {
             input.startsWith("!switch ") -> {
