@@ -1,0 +1,137 @@
+package org.example
+
+import com.rabbitmq.client.*
+import kotlinx.coroutines.*
+
+class ChatClient(
+    private val host: String = "127.0.0.1",
+    private val initialChannel: String
+) {
+    private var connection: Connection? = null
+    private var channel: Channel? = null
+    private var currentChannel: String = initialChannel
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var currentQueue: String? = null
+
+    fun connect() {
+        try {
+            val factory = ConnectionFactory()
+            factory.host = host
+            connection = factory.newConnection()
+            channel = connection?.createChannel()
+
+            channel?.exchangeDeclare(currentChannel, BuiltinExchangeType.FANOUT)
+
+            currentQueue = channel?.queueDeclare()?.queue
+            channel?.queueBind(currentQueue, currentChannel, "")
+
+            startMessageConsumer(currentQueue)
+
+            println("Connected to RabbitMQ server at $host")
+            println("Joined channel: $currentChannel")
+        } catch (e: Exception) {
+            println("Error connecting to RabbitMQ: ${e.message}")
+            close()
+        }
+    }
+
+    private fun startMessageConsumer(queueName: String?) {
+        scope.launch {
+            try {
+                channel?.basicConsume(queueName, true, object : DefaultConsumer(channel) {
+                    override fun handleDelivery(
+                        consumerTag: String,
+                        envelope: Envelope,
+                        properties: AMQP.BasicProperties,
+                        body: ByteArray
+                    ) {
+                        val message = String(body, Charsets.UTF_8)
+                        println("[$currentChannel] $message")
+                    }
+                })
+            } catch (e: Exception) {
+                println("Error consuming messages: ${e.message}")
+            }
+        }
+    }
+
+    fun switchChannel(newChannel: String) {
+        try {
+            currentQueue?.let { queue ->
+                channel?.queueUnbind(queue, currentChannel, "")
+                channel?.queueDelete(queue)
+            }
+
+            channel?.exchangeDeclare(newChannel, BuiltinExchangeType.FANOUT)
+            currentQueue = channel?.queueDeclare()?.queue
+            channel?.queueBind(currentQueue, newChannel, "")
+
+            currentChannel = newChannel
+            println("Switched to channel: $currentChannel")
+
+            startMessageConsumer(currentQueue)
+        } catch (e: Exception) {
+            println("Error switching channel: ${e.message}")
+        }
+    }
+
+    fun sendMessage(message: String) {
+        try {
+            channel?.basicPublish(
+                currentChannel,
+                "",
+                null,
+                message.toByteArray(Charsets.UTF_8)
+            )
+        } catch (e: Exception) {
+            println("Error sending message: ${e.message}")
+        }
+    }
+
+    fun close() {
+        try {
+            currentQueue?.let { queue ->
+                channel?.queueUnbind(queue, currentChannel, "")
+                channel?.queueDelete(queue)
+            }
+            channel?.close()
+            connection?.close()
+            scope.cancel()
+        } catch (e: Exception) {
+            println("Error closing connection: ${e.message}")
+        }
+    }
+}
+
+fun main(args: Array<String>) {
+    val host = args.getOrNull(0) ?: "127.0.0.1"
+    val initialChannel = args.getOrNull(1) ?: "general"
+
+    val client = ChatClient(host, initialChannel)
+    client.connect()
+
+    println("Chat client started. Commands:")
+    println("!switch <channel> - Switch to a different channel")
+    println("Type your message and press Enter to send")
+    println("Type 'exit' to quit")
+
+    while (true) {
+        val input = readLine() ?: break
+
+        when {
+            input.startsWith("!switch ") -> {
+                val newChannel = input.substringAfter("!switch ")
+                client.switchChannel(newChannel)
+            }
+
+            input == "exit" -> {
+                client.close()
+                break
+            }
+
+            else -> {
+                client.sendMessage(input)
+            }
+        }
+    }
+} 
