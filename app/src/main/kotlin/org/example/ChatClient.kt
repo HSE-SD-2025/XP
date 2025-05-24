@@ -6,7 +6,8 @@ import kotlinx.coroutines.*
 class ChatClient(
     private val host: String = "127.0.0.1",
     initialChannel: String,
-    private val username: String
+    private val username: String,
+    private val onMessageReceived: ((String) -> Unit)? = null
 ) {
     private var connection: Connection? = null
     private var channel: Channel? = null
@@ -48,6 +49,7 @@ class ChatClient(
                     ) {
                         val message = String(body, Charsets.UTF_8)
                         println("[$currentChannel] $message")
+                        onMessageReceived?.invoke(message)
                     }
                 })
             } catch (e: Exception) {

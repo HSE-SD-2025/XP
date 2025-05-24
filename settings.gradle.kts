@@ -12,3 +12,4 @@ plugins {
 
 rootProject.name = "rabbitmq-chat"
 include("app")
+include("gui-client")
