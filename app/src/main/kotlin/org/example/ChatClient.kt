@@ -5,7 +5,8 @@ import kotlinx.coroutines.*
 
 class ChatClient(
     private val host: String = "127.0.0.1",
-    private val initialChannel: String
+    initialChannel: String,
+    private val username: String
 ) {
     private var connection: Connection? = null
     private var channel: Channel? = null
@@ -77,11 +78,12 @@ class ChatClient(
 
     fun sendMessage(message: String) {
         try {
+            val messageWithUsername = "[$username] $message"
             channel?.basicPublish(
                 currentChannel,
                 "",
                 null,
-                message.toByteArray(Charsets.UTF_8)
+                messageWithUsername.toByteArray(Charsets.UTF_8)
             )
         } catch (e: Exception) {
             println("Error sending message: ${e.message}")
@@ -106,11 +108,14 @@ class ChatClient(
 fun main(args: Array<String>) {
     val host = args.getOrNull(0) ?: "127.0.0.1"
     val initialChannel = args.getOrNull(1) ?: "general"
+    
+    print("Enter your username: ")
+    val username = readLine()?.takeIf { it.isNotBlank() } ?: "Anonymous"
 
-    val client = ChatClient(host, initialChannel)
+    val client = ChatClient(host, initialChannel, username)
     client.connect()
 
-    println("Chat client started. Commands:")
+    println("Chat client started as $username. Commands:")
     println("!switch <channel> - Switch to a different channel")
     println("Type your message and press Enter to send")
     println("Type 'exit' to quit")
