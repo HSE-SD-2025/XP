@@ -3,16 +3,16 @@
 1. Убедитесь, что RabbitMQ сервер запущен и доступен
 2. Соберите проект:
    ```bash
-   ./gradlew build
+   ../gradlew fatJar
    ```
-3. Запустите клиент:
+3. Запустите сервер:
    ```bash
-   ./gradlew run
+   docker compose up -d rabbitmq
    ```
    
-   Или с указанием хоста и начального канала:
+4. Запустите и подключитесь к консольному приложению клиента:
    ```bash
-   ./gradlew run --args="localhost general"
+   docker compose run -it chat-client
    ```
 
 ## Использование
