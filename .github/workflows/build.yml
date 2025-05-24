@@ -22,7 +22,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
       
-    - name: Run E2E Tests
-      run: ./gradlew test --tests "org.example.ChatClientE2ETest"
+    - name: Run Tests
+      run: ./gradlew test
       env:
         DOCKER_HOST: unix:///var/run/docker.sock
