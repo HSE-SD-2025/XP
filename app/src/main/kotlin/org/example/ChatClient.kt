@@ -2,11 +2,14 @@ package org.example
 
 import com.rabbitmq.client.*
 import kotlinx.coroutines.*
+import java.io.PrintStream
 
 class ChatClient(
     private val host: String = "127.0.0.1",
     initialChannel: String,
-    private val username: String
+    private val username: String,
+    private val port: Int? = null,
+    private val outputStream: PrintStream = System.out,
 ) {
     private var connection: Connection? = null
     private var channel: Channel? = null
@@ -18,6 +21,9 @@ class ChatClient(
         try {
             val factory = ConnectionFactory()
             factory.host = host
+            if (port != null) {
+                factory.port = port
+            }
             connection = factory.newConnection()
             channel = connection?.createChannel()
 
@@ -28,10 +34,10 @@ class ChatClient(
 
             startMessageConsumer(currentQueue)
 
-            println("Connected to RabbitMQ server at $host")
-            println("Joined channel: $currentChannel")
+            outputStream.println("Connected to RabbitMQ server at $host")
+            outputStream.println("Joined channel: $currentChannel")
         } catch (e: Exception) {
-            println("Error connecting to RabbitMQ: ${e.message}")
+            outputStream.println("Error connecting to RabbitMQ: ${e.message}")
             close()
         }
     }
@@ -47,11 +53,11 @@ class ChatClient(
                         body: ByteArray
                     ) {
                         val message = String(body, Charsets.UTF_8)
-                        println("[$currentChannel] $message")
+                        outputStream.println("[$currentChannel] $message")
                     }
                 })
             } catch (e: Exception) {
-                println("Error consuming messages: ${e.message}")
+                outputStream.println("Error consuming messages: ${e.message}")
             }
         }
     }
@@ -68,11 +74,11 @@ class ChatClient(
             channel?.queueBind(currentQueue, newChannel, "")
 
             currentChannel = newChannel
-            println("Switched to channel: $currentChannel")
+            outputStream.println("Switched to channel: $currentChannel")
 
             startMessageConsumer(currentQueue)
         } catch (e: Exception) {
-            println("Error switching channel: ${e.message}")
+            outputStream.println("Error switching channel: ${e.message}")
         }
     }
 
@@ -86,7 +92,7 @@ class ChatClient(
                 messageWithUsername.toByteArray(Charsets.UTF_8)
             )
         } catch (e: Exception) {
-            println("Error sending message: ${e.message}")
+            outputStream.println("Error sending message: ${e.message}")
         }
     }
 
@@ -100,7 +106,7 @@ class ChatClient(
             connection?.close()
             scope.cancel()
         } catch (e: Exception) {
-            println("Error closing connection: ${e.message}")
+            outputStream.println("Error closing connection: ${e.message}")
         }
     }
 }
@@ -108,7 +114,7 @@ class ChatClient(
 fun main(args: Array<String>) {
     val host = args.getOrNull(0) ?: "127.0.0.1"
     val initialChannel = args.getOrNull(1) ?: "general"
-    
+
     print("Enter your username: ")
     val username = readLine()?.takeIf { it.isNotBlank() } ?: "Anonymous"
 
@@ -121,7 +127,7 @@ fun main(args: Array<String>) {
     println("Type 'exit' to quit")
 
     while (true) {
-        val input = readLine() ?: break
+        val input = readlnOrNull() ?: break
 
         when {
             input.startsWith("!switch ") -> {
