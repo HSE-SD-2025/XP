@@ -18,5 +18,9 @@
 - [Консольное приложение](/app/README.md)
 - [GUI приложение](/gui-client/README.md)
 
+## Архитектура
+
+Подробное описание архитектуры приложения можно найти в файле [architecture.md](architecture.md).
+
 ## Видео
 [Ссылка на видео](https://drive.google.com/file/d/1BODCAyrgteWsSrXQGBerp2Kh9p2ZfViz/view?usp=sharing)
