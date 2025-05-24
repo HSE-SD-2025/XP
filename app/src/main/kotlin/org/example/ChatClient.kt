@@ -5,7 +5,7 @@ import kotlinx.coroutines.*
 import java.io.PrintStream
 
 class ChatClient(
-    private val host: String = "127.0.0.1",
+    private val host: String,
     initialChannel: String,
     private val username: String,
     private val port: Int? = null,
@@ -112,7 +112,7 @@ class ChatClient(
 }
 
 fun main(args: Array<String>) {
-    val host = args.getOrNull(0) ?: "127.0.0.1"
+    val host = args.getOrNull(0) ?: System.getenv("RABBITMQ_HOST")
     val initialChannel = args.getOrNull(1) ?: "general"
 
     print("Enter your username: ")
@@ -127,7 +127,7 @@ fun main(args: Array<String>) {
     println("Type 'exit' to quit")
 
     while (true) {
-        val input = readlnOrNull() ?: break
+        val input = readlnOrNull() ?: continue
 
         when {
             input.startsWith("!switch ") -> {
