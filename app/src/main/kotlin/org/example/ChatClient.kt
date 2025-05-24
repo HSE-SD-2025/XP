@@ -5,11 +5,12 @@ import kotlinx.coroutines.*
 import java.io.PrintStream
 
 class ChatClient(
-    private val host: String,
+    private val host: String = "127.0.0.1",
     initialChannel: String,
     private val username: String,
     private val port: Int? = null,
     private val outputStream: PrintStream = System.out,
+    private val onMessageReceived: ((String) -> Unit)? = null
 ) {
     private var connection: Connection? = null
     private var channel: Channel? = null
@@ -54,6 +55,7 @@ class ChatClient(
                     ) {
                         val message = String(body, Charsets.UTF_8)
                         outputStream.println("[$currentChannel] $message")
+                        onMessageReceived?.invoke(message)
                     }
                 })
             } catch (e: Exception) {
