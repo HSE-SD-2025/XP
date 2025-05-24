@@ -6,14 +6,7 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
-  chat-client-1:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-  chat-client-2:
+  chat-client:
     build:
       context: .
       dockerfile: Dockerfile
