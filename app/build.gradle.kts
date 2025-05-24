@@ -1,6 +1,7 @@
 plugins {
     application
     kotlin("jvm") version "1.9.22"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 repositories {
@@ -14,6 +15,13 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:5.20.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // Test dependencies
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.testcontainers:testcontainers:1.19.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+    testImplementation("org.testcontainers:rabbitmq:1.19.3")
+    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 java {
@@ -41,4 +49,8 @@ tasks.register<Jar>("fatJar") {
     from({
         configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
     })
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
