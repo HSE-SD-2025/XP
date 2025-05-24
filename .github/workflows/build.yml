@@ -1,0 +1,28 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+      
+    - name: Run E2E Tests
+      run: ./gradlew test --tests "org.example.ChatClientE2ETest"
+      env:
+        DOCKER_HOST: unix:///var/run/docker.sock
