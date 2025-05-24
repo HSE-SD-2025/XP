@@ -16,10 +16,10 @@ import androidx.compose.ui.window.rememberWindowState
 @Preview
 fun UsernameInputWindow(
     onUsernameSubmitted: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     var username by remember { mutableStateOf("") }
-    
+
     Window(
         onCloseRequest = onClose,
         title = "Enter Username",
@@ -36,11 +36,11 @@ fun UsernameInputWindow(
                 label = { Text("Username") },
                 singleLine = true
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Button(
-                onClick = { 
+                onClick = {
                     if (username.isNotBlank()) {
                         onUsernameSubmitted(username)
                     }
@@ -57,12 +57,12 @@ fun UsernameInputWindow(
 @Preview
 fun ChatWindow(
     username: String,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     val viewModel = remember { ChatViewModel(username) }
     var message by remember { mutableStateOf("") }
     var channelInput by remember { mutableStateOf(viewModel.currentChannel) }
-    
+
     Window(
         onCloseRequest = {
             viewModel.close()
@@ -74,7 +74,6 @@ fun ChatWindow(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
-            // Header with channel and username info
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -95,10 +94,9 @@ fun ChatWindow(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Channel selector
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -115,10 +113,9 @@ fun ChatWindow(
                     Text("Switch")
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Messages area
+
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -140,10 +137,9 @@ fun ChatWindow(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Message input
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -154,7 +150,7 @@ fun ChatWindow(
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Type a message...") }
                 )
-                
+
                 Button(
                     onClick = {
                         if (message.isNotBlank()) {
@@ -173,7 +169,7 @@ fun ChatWindow(
 
 fun main() = application {
     var username by remember { mutableStateOf<String?>(null) }
-    
+
     if (username == null) {
         UsernameInputWindow(
             onUsernameSubmitted = { newUsername ->
